@@ -1,302 +1,406 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live-oppdateringer – Ankebehandling Løten-saken</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f8f9fa;
-      color: #111;
-      margin: 0;
-      padding: 20px;
-      line-height: 1.6;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebru-saken – Live oppdateringer</title>
+    <style>
+        :root {
+            --primary: #c8102e;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --border: #dee2e6;
+        }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: 16px;
+            line-height: 1.6;
+        }
 
-    header {
-      text-align: center;
-      padding: 1.5rem 0 2rem;
-      border-bottom: 1px solid #ddd;
-      margin-bottom: 2rem;
-    }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-    header h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      color: #b22222;
-    }
+        header {
+            text-align: center;
+            padding: 1.5rem 0 2rem;
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: 2rem;
+        }
 
-    header p {
-      color: #555;
-      margin: 0.5rem 0 0;
-    }
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 2.1rem;
+        }
 
-    .update {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-      position: relative;
-    }
+        .subtitle {
+            color: var(--gray);
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
 
-    .update-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.8rem;
-      padding-bottom: 0.6rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
+        .post {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1.6rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.08s ease, box-shadow 0.15s ease;
+        }
 
-    .author {
-      font-weight: 600;
-      color: #1a3c5e;
-    }
+        .post:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
 
-    .time {
-      color: #777;
-      font-size: 0.9rem;
-    }
+        .post-header {
+            padding: 1.2rem 1.4rem;
+            background: linear-gradient(to right, #f8f9fa, white);
+            border-bottom: 1px solid var(--border);
+        }
 
-    .title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin: 0.4rem 0 0.8rem;
-      color: #222;
-    }
+        .post-title {
+            margin: 0 0 0.6rem 0;
+            font-size: 1.35rem;
+            color: var(--dark);
+        }
 
-    .content {
-      margin: 0;
-    }
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.92rem;
+            color: var(--gray);
+        }
 
-    .content p {
-      margin: 0.65em 0;
-    }
+        .author {
+            font-weight: 600;
+            color: #444;
+        }
 
-    .content img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 6px;
-      margin: 1rem 0;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
+        .timestamp {
+            font-size: 0.88rem;
+        }
 
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%; /* 16:9 */
-      height: 0;
-      overflow: hidden;
-      max-width: 100%;
-      background: #000;
-      border-radius: 6px;
-      margin: 1rem 0;
-    }
+        .post-body {
+            padding: 1.4rem;
+        }
 
-    .video-container iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
+        .post-body:empty {
+            display: none;
+        }
 
-    .update.importance-high {
-      border-left: 5px solid #c0392b;
-      background: #fffefe;
-    }
+        .post-body p {
+            margin: 0 0 1rem 0;
+        }
 
-    @media (max-width: 600px) {
-      .update {
-        padding: 1rem;
-      }
-      header h1 {
-        font-size: 1.5rem;
-      }
-    }
-  </style>
+        .post-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.2rem 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            display: block;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            background: #000;
+            margin: 1.2rem 0;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .user-contributions {
+            margin-top: 1.8rem;
+            padding: 1.2rem 1.4rem;
+            border-top: 1px dashed #e0e0e0;
+            background: #fafafa;
+        }
+
+        .user-contributions h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.15rem;
+            color: var(--dark);
+        }
+
+        .contrib {
+            padding: 1rem;
+            margin: 0.6rem 0;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .contrib-name {
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 0.4rem;
+        }
+
+        .loading, .error, .loading-more {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 1.1rem;
+            color: var(--gray);
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        @media (max-width: 600px) {
+            .post-header, .post-body, .user-contributions {
+                padding: 1.1rem;
+            }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
+    <div class="container">
+        <header>
+            <h1>Ebru-saken</h1>
+            <div class="subtitle">Siste nytt fra rettssalen – ankebehandling drapet på Ole Andreas Sønstvedt</div>
+        </header>
 
-  <header>
-    <h1>Ankebehandling – drapet på Ole Andreas Sønstvedt</h1>
-    <p>Live-oppdateringer fra Hamar tinghus • Eidsivating lagmannsrett</p>
-  </header>
+        <div id="loading" class="loading">Laster siste oppdateringer...</div>
+        <div id="error" class="error" style="display:none;"></div>
+        <div id="feed"></div>
+        <div id="loading-more" class="loading-more" style="display:none;">Laster eldre meldinger...</div>
+    </div>
 
-  <div id="updates"></div>
+    <script>
+        const BASE_URL = 'https://livecentercdn.norkon.net/BulletinFeed/hamararbeiderblad/79265/';
+        const INITIAL_ENDPOINT = 'Initial';
+        const feed = document.getElementById('feed');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const loadingMore = document.getElementById('loading-more');
 
-</div>
+        let allPosts = [];
+        let lastTs = 0;
+        let oldestId = null;
+        let isLoadingMore = false;
 
-<script>
-// -----------------------------------------------------------------------------
-// Konfigurasjon
-// -----------------------------------------------------------------------------
-const BASE_URL = 'https://livecentercdn.norkon.net/BulletinFeed/hamararbeiderblad/79265';
-const INITIAL_URL = `${BASE_URL}/Initial`;
-const POLL_INTERVAL = 30000; // 30 sekunder
+        async function fetchJson(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
 
-let lastChangesId = null;
-let updates = [];
+        async function loadInitialAndPoll() {
+            try {
+                const data = await fetchJson(BASE_URL + INITIAL_ENDPOINT);
 
-// -----------------------------------------------------------------------------
-// Hjelpefunksjoner
-// -----------------------------------------------------------------------------
-function unixToTime(unix) {
-  const date = new Date(unix * 1000);
-  return date.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
-}
+                if (!data.success || !data.result?.addedOrChanged) {
+                    throw new Error('Ugyldig respons fra Initial');
+                }
 
-function createUpdateElement(update) {
-  const div = document.createElement('div');
-  div.className = `update ${update.importance === 1 ? 'importance-high' : ''}`;
-  div.dataset.id = update.id;
+                const ts = data.result.ts || 0;
+                if (ts > lastTs) {
+                    lastTs = ts;
 
-  const header = document.createElement('div');
-  header.className = 'update-header';
-  header.innerHTML = `
-    <span class="author">${update.authorName || 'Ukjent'}</span>
-    <span class="time">${unixToTime(update.created)}${update.updated ? ' (oppdatert ' + unixToTime(update.updated) + ')' : ''}</span>
-  `;
+                    const newPosts = data.result.addedOrChanged || [];
+                    if (newPosts.length > 0) {
+                        const currentOldest = Math.min(...newPosts.map(p => p.id));
+                        if (!oldestId || currentOldest < oldestId) {
+                            oldestId = currentOldest;
+                        }
 
-  const title = document.createElement('div');
-  title.className = 'title';
-  title.textContent = update.title || '';
+                        newPosts.forEach(post => {
+                            if (!allPosts.some(p => p.id === post.id)) {
+                                allPosts.push(post);
+                            }
+                        });
 
-  const content = document.createElement('div');
-  content.className = 'content';
-  content.innerHTML = update.content?.html || '';
+                        renderAllPosts();
+                    }
+                }
 
-  // Håndter bilder
-  content.querySelectorAll('ncpost-content[data-type="BILDE"]').forEach(el => {
-    const src = el.getAttribute('data-src');
-    const caption = el.getAttribute('data-caption') || '';
-    const source = el.getAttribute('data-source') || '';
-    if (src) {
-      const figure = document.createElement('figure');
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = caption;
-      img.style.maxWidth = '100%';
-      img.style.height = 'auto';
-      figure.appendChild(img);
+                loading.style.display = 'none';
+                errorDiv.style.display = 'none';
 
-      if (caption || source) {
-        const figcaption = document.createElement('figcaption');
-        figcaption.textContent = [caption, source].filter(Boolean).join(' ');
-        figcaption.style.fontSize = '0.9rem';
-        figcaption.style.color = '#555';
-        figcaption.style.textAlign = 'center';
-        figure.appendChild(figcaption);
-      }
+                if ((data.result.hasMore || allPosts.length < 20) && !isLoadingMore && oldestId) {
+                    loadEarlier(oldestId);
+                }
 
-      el.replaceWith(figure);
-    }
-  });
+            } catch (err) {
+                errorDiv.textContent = `Feil ved lasting: ${err.message}`;
+                errorDiv.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        }
 
-  // Håndter video / custom embed (lwcdn iframes)
-  content.querySelectorAll('ncpost-content[data-type="CUSTOM"]').forEach(el => {
-    const html = el.getAttribute('data-content') || '';
-    if (html.trim()) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'video-container';
-      wrapper.innerHTML = html;
-      el.replaceWith(wrapper);
-    } else {
-      el.remove();
-    }
-  });
+        async function loadEarlier(minId) {
+            if (isLoadingMore) return;
+            isLoadingMore = true;
+            loadingMore.style.display = 'block';
 
-  div.appendChild(header);
-  if (title.textContent.trim()) div.appendChild(title);
-  div.appendChild(content);
+            try {
+                const url = `${BASE_URL}EarlierObj/${minId}`;
+                const data = await fetchJson(url);
 
-  return div;
-}
+                if (!data.success || !data.result?.bulletins) {
+                    console.warn('Ingen flere eldre meldinger eller ugyldig format');
+                    return;
+                }
 
-function renderUpdates() {
-  const container = document.getElementById('updates');
-  container.innerHTML = '';
+                const olderPosts = data.result.bulletins || [];
 
-  // Sorter nyest først
-  updates.sort((a, b) => b.created - a.created);
+                olderPosts.forEach(post => {
+                    if (!allPosts.some(p => p.id === post.id)) {
+                        allPosts.push(post);
+                    }
+                });
 
-  updates.forEach(update => {
-    container.appendChild(createUpdateElement(update));
-  });
-}
+                if (olderPosts.length > 0) {
+                    const newOldest = Math.min(...olderPosts.map(p => p.id));
+                    if (newOldest < minId) {
+                        oldestId = newOldest;
+                    }
+                }
 
-function addNewUpdates(newUpdates) {
-  newUpdates.forEach(newUpdate => {
-    const existingIndex = updates.findIndex(u => u.id === newUpdate.id);
-    if (existingIndex === -1) {
-      updates.push(newUpdate);
-    } else {
-      updates[existingIndex] = { ...updates[existingIndex], ...newUpdate };
-    }
-  });
-}
+                renderAllPosts();
 
-// -----------------------------------------------------------------------------
-// Datahenting
-// -----------------------------------------------------------------------------
-async function fetchInitial() {
-  try {
-    const response = await fetch(INITIAL_URL);
-    if (!response.ok) throw new Error('Initial fetch feilet');
-    const data = await response.json();
+            } catch (err) {
+                console.error('Feil ved lasting av eldre:', err);
+            } finally {
+                isLoadingMore = false;
+                loadingMore.style.display = 'none';
+            }
+        }
 
-    if (data.success && data.result) {
-      updates = data.result.addedOrChanged || [];
-      lastChangesId = data.result.lastChangesId;
-      renderUpdates();
-      startPolling();
-    }
-  } catch (err) {
-    console.error('Feil ved initial henting:', err);
-  }
-}
+        function renderAllPosts() {
+            const sorted = [...allPosts].sort((a, b) => b.created - a.created);
 
-async function fetchChanges() {
-  if (!lastChangesId) return;
-  try {
-    const url = `${BASE_URL}/Changes/${lastChangesId}`;
-    const response = await fetch(url);
-    if (response.status === 404) return;
-    if (!response.ok) throw new Error('Changes fetch feilet');
+            feed.innerHTML = '';
 
-    const data = await response.json();
-    if (data.success && data.result) {
-      if (data.result.addedOrChanged?.length) {
-        addNewUpdates(data.result.addedOrChanged);
-        renderUpdates();
-      }
-      if (data.result.lastChangesId) {
-        lastChangesId = data.result.lastChangesId;
-      }
-    }
-  } catch (err) {
-    console.error('Polling feil:', err);
-  }
-}
+            sorted.forEach(post => {
+                const el = document.createElement('article');
+                el.className = 'post';
 
-function startPolling() {
-  setInterval(fetchChanges, POLL_INTERVAL);
-}
+                let headerHTML = `
+                    <div class="post-header">
+                        ${post.title ? `<h2 class="post-title">${post.title}</h2>` : ''}
+                        <div class="meta">
+                            <span class="author">${post.authorName || 'Ukjent'}</span>
+                            <span class="timestamp">${formatDate(post.created)}</span>
+                        </div>
+                    </div>
+                `;
 
-// Start
-fetchInitial();
+                let bodyHTML = '';
+                if (post.content?.html && post.content.html.trim() !== '') {
+                    let cleaned = post.content.html;
 
-</script>
+                    // Bilde-håndtering (som før)
+                    cleaned = cleaned.replace(
+                        /<ncpost-content\s+data-type="BILDE"\s+data-src="([^"]+)"[^>]*>/gi,
+                        (m, src) => `<img src="${src}" alt="Bilde fra saken" loading="lazy">`
+                    );
 
+                    // Video-håndtering (LW / Flowplayer embed)
+                    cleaned = cleaned.replace(
+                        /<ncpost-content\s+data-type="CUSTOM"\s+data-content="([^"]+)"[^>]*>/gi,
+                        (match, encoded) => {
+                            try {
+                                // Dekode HTML-entiteter (ofte &lt; → < osv.)
+                                let html = encoded
+                                    .replace(/&lt;/g, '<')
+                                    .replace(/&gt;/g, '>')
+                                    .replace(/&quot;/g, '"')
+                                    .replace(/&amp;/g, '&');
+                                return `<div class="video-container">${html}</div>`;
+                            } catch (e) {
+                                return '<!-- Kunne ikke parse video -->';
+                            }
+                        }
+                    );
+
+                    // Fjern tomme / ubrukte ncpost-content
+                    cleaned = cleaned.replace(/<ncpost-content[^>]*><\/ncpost-content>/gi, '');
+
+                    bodyHTML = `<div class="post-body">${cleaned}</div>`;
+                }
+
+                let contribHTML = '';
+                const contributions = post.content?.userContribution || [];
+                if (contributions.length > 0) {
+                    contribHTML = `<div class="user-contributions"><h3>Spørsmål & kommentarer</h3>`;
+                    contributions.forEach(c => {
+                        contribHTML += renderContribution(c, 0);
+                    });
+                    contribHTML += '</div>';
+                }
+
+                el.innerHTML = headerHTML + bodyHTML + contribHTML;
+
+                if (headerHTML.trim() || bodyHTML || contribHTML) {
+                    feed.appendChild(el);
+                }
+            });
+        }
+
+        function renderContribution(c, level) {
+            let html = `
+                <div class="contrib" style="margin-left: ${level * 24}px;">
+                    <span class="contrib-name">${c.name || 'Anonym'}:</span>
+                    <span>${c.comment || '(ingen tekst)'}</span>
+                </div>
+            `;
+            if (c.childComments?.length) {
+                c.childComments.forEach(child => {
+                    html += renderContribution(child, level + 1);
+                });
+            }
+            return html;
+        }
+
+        function formatDate(unix) {
+            if (!unix) return '—';
+            const d = new Date(unix * 1000);
+            return d.toLocaleString('no-NO', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            }).replace(',', '');
+        }
+
+        // Start lasting
+        loadInitialAndPoll();
+
+        // Polling for nye meldinger
+        setInterval(loadInitialAndPoll, 25000);
+
+        // Last flere ved scroll
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800 &&
+                oldestId && !isLoadingMore) {
+                loadEarlier(oldestId);
+            }
+        });
+    </script>
 </body>
 </html>
