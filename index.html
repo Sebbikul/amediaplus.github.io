@@ -91,7 +91,7 @@
 
     .video-container {
       position: relative;
-      padding-bottom: 56.25%; /* 16:9 aspect ratio */
+      padding-bottom: 56.25%; /* 16:9 */
       height: 0;
       overflow: hidden;
       max-width: 100%;
@@ -100,28 +100,13 @@
       margin: 1rem 0;
     }
 
-    .video-container iframe,
-    .video-container video {
+    .video-container iframe {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       border: none;
-    }
-
-    .video-fallback {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ccc;
-      font-style: italic;
-      text-align: center;
-      padding: 20px;
-      background: rgba(0,0,0,0.6);
-      pointer-events: none;
     }
 
     .update.importance-high {
@@ -221,17 +206,10 @@ function createUpdateElement(update) {
   // Håndter video / custom embed (lwcdn iframes)
   content.querySelectorAll('ncpost-content[data-type="CUSTOM"]').forEach(el => {
     const html = el.getAttribute('data-content') || '';
-    if (html) {
+    if (html.trim()) {
       const wrapper = document.createElement('div');
       wrapper.className = 'video-container';
       wrapper.innerHTML = html;
-
-      // Legg til fallback-tekst som vises på GitHub / der iframe blokkeres
-      const fallback = document.createElement('div');
-      fallback.className = 'video-fallback';
-      fallback.innerHTML = 'Video (vises kun når siden åpnes lokalt eller på egen server – ikke på GitHub-filvisning)';
-      wrapper.appendChild(fallback);
-
       el.replaceWith(wrapper);
     } else {
       el.remove();
@@ -263,7 +241,6 @@ function addNewUpdates(newUpdates) {
     if (existingIndex === -1) {
       updates.push(newUpdate);
     } else {
-      // Oppdater eksisterende (f.eks. ved endringer)
       updates[existingIndex] = { ...updates[existingIndex], ...newUpdate };
     }
   });
@@ -294,12 +271,12 @@ async function fetchChanges() {
   try {
     const url = `${BASE_URL}/Changes/${lastChangesId}`;
     const response = await fetch(url);
-    if (response.status === 404) return; // ingen nye endringer
+    if (response.status === 404) return;
     if (!response.ok) throw new Error('Changes fetch feilet');
 
     const data = await response.json();
     if (data.success && data.result) {
-      if (data.result.addedOrChanged?.length > 0) {
+      if (data.result.addedOrChanged?.length) {
         addNewUpdates(data.result.addedOrChanged);
         renderUpdates();
       }
