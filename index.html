@@ -135,7 +135,6 @@ async function searchImages() {
   try {
     const response = await fetch(url, {
       method: 'GET',
-      credentials: 'omit',           // viktig – vi sender IKKE nettleser-cookies
       headers: {
         'Cookie': MY_COOKIE,
         'X-SPAJAXRequest': 'true',
