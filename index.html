@@ -3,222 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NTB Bilde-søk med autentisering</title>
+  <title>NTB Bilde søk (via corsproxy)</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      background: #f9fafb;
-      color: #1f2937;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8f9fa;
       margin: 0;
       padding: 20px;
     }
-    h1 { text-align: center; color: #1e40af; }
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
     .search-container {
-      max-width: 800px;
-      margin: 0 auto 40px;
-      text-align: center;
+      margin-bottom: 2rem;
+      max-width: 700px;
     }
     input[type="text"] {
-      width: 60%;
+      padding: 12px 16px;
+      font-size: 1.1rem;
+      width: 70%;
       max-width: 500px;
-      padding: 14px 18px;
-      font-size: 1.1rem;
-      border: 2px solid #d1d5db;
-      border-radius: 8px;
-      outline: none;
+      border: 1px solid #ccc;
+      border-radius: 6px 0 0 6px;
+      border-right: none;
     }
-    input:focus { border-color: #3b82f6; }
     button {
-      padding: 14px 28px;
+      padding: 12px 24px;
       font-size: 1.1rem;
-      margin-left: 12px;
-      background: #2563eb;
+      background: #0066cc;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 0 6px 6px 0;
       cursor: pointer;
     }
-    button:hover { background: #1d4ed8; }
-    #status { margin-top: 16px; color: #4b5563; min-height: 1.5em; }
+    button:hover {
+      background: #0055aa;
+    }
+    #status {
+      margin-top: 1rem;
+      color: #555;
+      min-height: 1.5em;
+    }
     .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      max-width: 1800px;
-      margin: 0 auto;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 2rem;
     }
-    .gallery-item {
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: all 0.12s ease;
-    }
-    .gallery-item:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    }
-    .gallery-item img {
+    .gallery img {
       width: 100%;
       height: auto;
-      display: block;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      transition: transform 0.08s ease;
+      object-fit: cover;
+      aspect-ratio: 4/3;
+    }
+    .gallery img:hover {
+      transform: scale(1.03);
     }
     .caption {
-      padding: 12px 14px;
-      font-size: 0.95rem;
-      line-height: 1.45;
-      color: #374151;
+      margin-top: 6px;
+      font-size: 0.92rem;
+      color: #444;
+      line-height: 1.4;
     }
-    .no-results {
-      text-align: center;
-      font-size: 1.3rem;
-      color: #6b7280;
-      margin: 80px 20px;
+    .item {
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
-    footer {
+    .credits {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 3rem;
       text-align: center;
-      margin-top: 80px;
-      color: #9ca3af;
-      font-size: 0.95rem;
+    }
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      max-width: 700px;
     }
   </style>
 </head>
 <body>
 
-<h1>Søk i NTB bilder (med autentisering)</h1>
+<h1>Søk i NTB bilder (editorial)</h1>
+
+<div class="warning">
+  Denne siden bruker en offentlig CORS-proxy (corsproxy.io) for å omgå nettleserens CORS-begrensning.<br>
+  Bruk kun til testing / privat bruk — ikke egnet for produksjon eller høy trafikk.
+</div>
 
 <div class="search-container">
-  <input type="text" id="query" placeholder="Skriv søkeord..." />
-  <button onclick="searchImages()">Søk</button>
+  <input type="text" id="query" placeholder="Skriv søkeord her..." />
+  <button onclick="doSearch()">Søk</button>
   <div id="status"></div>
 </div>
 
-<div id="gallery" class="gallery"></div>
+<div class="gallery" id="gallery"></div>
 
-<div id="noresults" class="no-results" style="display:none;">
-  Ingen bilder funnet – prøv et annet søkeord
+<div class="credits">
+  Bruker <code>https://bilder.ntb.no/xsearch.action</code> via corsproxy.io — kun til privat/ikke-kommersiell bruk
 </div>
 
-<footer>
-  Bruker NTB xsearch med Cookie og X-SPAJAXRequest • Henter maks 50 nyeste • Oppdatert mars 2026
-</footer>
-
 <script>
-// ←←← LIM INN DIN EGEN COOKIE HER ↓↓↓
-const MY_COOKIE = "user_clogged_in=true; SESSION=653716d2-4ee5-427c-99e5-9c3fdb28af8c";
-// Erstatt verdien over med den aktive SESSION-cookien din fra nettleseren
-
-async function searchImages() {
-  const queryInput = document.getElementById('query');
-  const searchTerm = queryInput.value.trim();
-  
-  if (!searchTerm) {
+async function doSearch() {
+  const query = document.getElementById("query").value.trim();
+  if (!query) {
     alert("Skriv inn et søkeord først");
     return;
   }
 
-  if (MY_COOKIE.includes("SESSION=") === false || MY_COOKIE.length < 40) {
-    alert("Du må lime inn en gyldig Cookie-streng øverst i script-taggen først!\nLogg inn på bilder.ntb.no → kopier Cookie-header fra DevTools.");
-    return;
-  }
+  const status = document.getElementById("status");
+  const gallery = document.getElementById("gallery");
 
-  const status   = document.getElementById('status');
-  const gallery  = document.getElementById('gallery');
-  const noresults = document.getElementById('noresults');
-
-  status.textContent = "Henter bilder...";
   gallery.innerHTML = "";
-  noresults.style.display = "none";
+  status.textContent = "Laster bilder via proxy...";
 
-  const url = `https://bilder.ntb.no/xsearch.action?search.searchString=${encodeURIComponent(searchTerm)}&search.mainGroup=editorial&search.sortOrder=newestFirst&search.offset=0&search.showNumResults=50&search.subscription=`;
+  // Bygg original URL
+  const baseUrl = "https://bilder.ntb.no/xsearch.action";
+  const params = new URLSearchParams({
+    "search.searchString": query,
+    "search.mainGroup": "editorial",
+    "search.offset": "0",
+    "search.showNumResults": "50",
+    "search.subscription": ""
+  });
+  const targetUrl = `${baseUrl}?${params.toString()}`;
+
+  // Bruk corsproxy.io
+  const proxyUrl = `https://corsproxy.io/?url=https://bilder.ntb.no/xsearch.action?search.searchString=drap&search.mainGroup=editorial&search.offset=0&search.showNumResults=50&search.subscription=`;
 
   try {
-    const response = await fetch(url, {
-      method: 'GET',
+    const response = await fetch(proxyUrl, {
+      method: "GET",
       headers: {
-        'Cookie': MY_COOKIE,
-        'X-SPAJAXRequest': 'true',
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'Referer': 'https://bilder.ntb.no/'
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "nb-NO,nb;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "priority": "u=1, i",
+        "referer": `https://bilder.ntb.no/r/?mainGroup=editorial&search=${encodeURIComponent(query)}`,
+        "sec-ch-ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Brave";v="146"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "sec-gpc": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+        "x-spajaxrequest": "true"
       }
     });
 
-const testing = await response.json()
-console.log(testing)
-
     if (!response.ok) {
-      throw new Error(`Server svarte med ${response.status} ${response.statusText}`);
+      throw new Error(`Proxy svarte med HTTP ${response.status}`);
     }
 
-    const text = await response.text();
+    const data = await response.json();
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (parseErr) {
-      // Hvis det er HTML + JSON → prøv å ekstrahere
-      const jsonMatch = text.match(/(\{[\s\S]*"images":[\s\S]*\})/);
-      if (jsonMatch) {
-        data = JSON.parse(jsonMatch[1]);
-      } else {
-        throw new Error("Kunne ikke parse JSON fra svaret");
-      }
-    }
-
-    if (!data?.images || !Array.isArray(data.images) || data.images.length === 0) {
-      noresults.style.display = "block";
-      status.textContent = data?.humanNumResults ? `Fant ${data.humanNumResults}` : "";
+    if (!data.images || !Array.isArray(data.images) || data.images.length === 0) {
+      status.textContent = "Ingen bilder funnet for dette søket.";
       return;
     }
 
-    status.textContent = `Fant ${data.images.length} bilder (${data.humanNumResults || ''})`;
+    status.textContent = `Fant ${data.images.length} bilder (av ${data.humanNumResults || data.numResults || "?"})`;
 
-    data.images.forEach(img => {
-      const item = document.createElement('div');
-      item.className = 'gallery-item';
+    for (const img of data.images) {
+      const previewBig = img.previewList?.find(p => p.type === "preview_big");
+      const src = previewBig?.url || img.previewLocation || "";
 
-      let src = '';
-      if (img.previewList) {
-        const big = img.previewList.find(p => p.type === 'preview_big');
-        if (big?.url) src = big.url;
-        else {
-          const prev = img.previewList.find(p => p.type === 'preview');
-          if (prev?.url) src = prev.url;
-        }
-      }
-      if (!src && img.previewLocation) src = img.previewLocation;
+      if (!src) continue;
 
-      if (!src) return;
+      const item = document.createElement("div");
+      item.className = "item";
 
-      const imgEl = document.createElement('img');
-      imgEl.src = src;
-      imgEl.alt = img.caption || img.headline || 'NTB-bilde';
-      imgEl.loading = 'lazy';
-      item.appendChild(imgEl);
+      const picture = document.createElement("img");
+      picture.src = src;
+      picture.alt = img.caption || img.headline || "NTB bilde";
+      picture.loading = "lazy";
 
-      if (img.caption || img.headline) {
-        const cap = document.createElement('div');
-        cap.className = 'caption';
-        cap.textContent = img.caption || img.headline || '';
+      item.appendChild(picture);
+
+      if (img.caption || img.credit || img.byline) {
+        const cap = document.createElement("div");
+        cap.className = "caption";
+
+        let text = img.caption || "";
+        if (img.byline) text += ` — ${img.byline}`;
+        if (img.credit) text += ` (${img.credit})`;
+
+        cap.textContent = text.trim();
         item.appendChild(cap);
       }
 
       gallery.appendChild(item);
-    });
+    }
 
   } catch (err) {
     console.error(err);
-    status.textContent = `Feil: ${err.message}`;
-    if (err.message.includes("403") || err.message.includes("401")) {
-      status.innerHTML += "<br><br><strong>Mest sannsynlig utløpt eller ugyldig SESSION-cookie.<br>Logg inn på nytt på bilder.ntb.no og kopier ny Cookie-header.</strong>";
-    }
+    status.textContent = "Feil ved lasting via proxy: " + (err.message || "ukjent feil");
   }
 }
 
-// Enter → søk
-document.getElementById('query').addEventListener('keypress', e => {
-  if (e.key === 'Enter') searchImages();
+// Enter-tast støtte
+document.getElementById("query").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    doSearch();
+  }
 });
+
 </script>
 
 </body>
