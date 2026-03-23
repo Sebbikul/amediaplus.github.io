@@ -143,6 +143,9 @@ async function searchImages() {
       }
     });
 
+const testing = await response.json()
+console.log(testing)
+
     if (!response.ok) {
       throw new Error(`Server svarte med ${response.status} ${response.statusText}`);
     }
